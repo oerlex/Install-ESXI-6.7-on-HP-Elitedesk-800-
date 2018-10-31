@@ -1,0 +1,49 @@
+Installation of ESXi6.7 on the HP Elitedesk 800 G4
+
+Internal network card: Intel® Ethernet Connection I219LM GbE LOM integrated network connection
+
+The Intel I219LM is not supported. Since no additional PCI network interface exists a USB3.0 to Ethernet 
+adapter needs to be used. In this project the StarTech USB31000S was chosen. It is based on the AX88179 chipset.
+VMware engineer William Lam created unoffical drivers which support this chipset.
+
+Downloads:
+ESXi6.X ax88179 driver --> https://s3.amazonaws.com/virtuallyghetto-download/vghetto-ax88179-esxi65-bundle.zip
+ESXi6.X realtek driver --> https://www.devtty.uk/homelab/USB-Ethernet-driver-for-ESXi-6.5/
+ESXi6.7 Offline-Bundle --> https://my.vmware.com/web/vmware/details?downloadGroup=ESXI670&productId=742&rPId=24636 //requires account and license
+
+
+BIOS settings of the HP Elitedesk 800 G4:
+
+Disabled SecureBoot and allow legacy boot
+Disable UEFI boot and enable legacy boot //Starting the installation in UEFI mode will get stuck at "“Relocating modules and starting up the kernel”
+
+Explanation why I use a CD:
+For unknown reasons the USB stick was not listed in the legacy bootable devices. Therefore the customized ESXi image was burned on
+a DVD which was directly detected. This might be fixed otherwise.
+
+The next step was to create a custom installation bundle, including the AX88179 driver, as well as the PCI.e harddrive driver.
+The PowerShell script ESXI-Customzer-PS found on https://www.v-front.de/p/esxi-customizer-ps.html 
+simplifies and automates the process of creating fully patched and customized ESXi 5.x and 6.x installation 
+ISOs using the VMware PowerCLI ImageBuilder module/snapin.
+
+I tried using the command:
+
+.\ESXi-Customizer-PS-v2.6.0.ps1 -v67 -pkgDir /path/to/ax88179/driver
+
+with no success.
+
+At https://www.virten.net/2017/02/heads-up-esxi-not-working-on-7th-gen-kaby-lake-intel-nuc/ another way was described.
+It uses the ESXi6.7 Offline-Bundle instead of the ESXi6.7 standard ISO. This was only obtainable as
+trial on vmware.com which needs to be revised if its going to be used in production.
+
+This script is to be used in the VMware PowerCLI (commands should be removed before execution)
+##Script
+Add-EsxSoftwareDepot .\update-from-esxi6.7-6.7_update01.zip   //Offline bundle
+Add-EsxSoftwareDepot .\vghetto-ax88179-esxi65-bundle.zip      //Custom esxi6.5 (6.7 compatible) ax88179 driver
+New-EsxImageProfile -CloneProfile "ESXi-6.7.0-20181001001s-standard" -name "ESXi-6.7-ax88179" -Vendor "virten.net" -AcceptanceLevel "CommunitySupported"
+Remove-EsxSoftwarePackage -ImageProfile "ESXi-6.7-ax88179" -SoftwarePackage "vmkusb"  //Remove the vmkusb
+Add-EsxSoftwarePackage -ImageProfile "ESXi-6.7-ax88179" -SoftwarePackage "vghetto-ax88179-esxi65" //Add the driver
+Export-ESXImageProfile -NoSignatureCheck -ImageProfile "ESXi-6.7-ax88179" -ExportToISO -filepath ESXi-6.7-ax88179.iso //Export image profile to an ISO file
+##/Script
+
+Burn the ISO on a CD/DVD.
