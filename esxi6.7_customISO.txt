@@ -72,9 +72,15 @@ The user fgrehl stated in the comments here --> https://www.virten.net/2017/02/h
 This message is displayed after ESXi has been placed on your disk so you can just ignore it. Reboot the NUC and it should boot into ESXi. You can then configure the physical NIC from the DCUI."
 
 After the reboot it no Hardware OS was detected eventhough we can see it in the BIOS. 
-Funny note is that if you switch back to UEFI now and boot into the install it will start loading ESXi but halt exactly as described further up *1.
+Funny note is that if you switch back to UEFI now and boot into the install it will start loading ESXi but halt exactly as described further up.
 And here the magic starts...
 When booting and having the CD-Drive plugged in and on boot priority #1 we don't choose the iso but boot form local media.
 Then its possible to boot into ESXi. The question remains why we can't boot directly in there but at this point I do not care anymore.
 
+The final things to tweak are to reset the network controller so the ESXi gets a new IP address. After logging in we also need to install the Intel(R) Network controller. This can be done under Host-->Manage-->Hardware-->PCI Devices--> Check Intel(R) Network
+Controller and reboot.
+
+At that point I could create a test VM with an CentOS7 image.
+
+GL with your install !
  
