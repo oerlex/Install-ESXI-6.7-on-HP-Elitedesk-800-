@@ -24,7 +24,9 @@ For unknown reasons the USB stick was not listed in the legacy bootable devices.
 
 ### Summary of BIOS changes:
 
-Advanced --> System Options
+* Advanced
+** test
+--> System Options
 		 --> uncheck "Configure Storage Controller for Intel Optane"
 		 --> uncheck "Configure Storage Controller for RAID"
 		 --> enable VTx
