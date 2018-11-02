@@ -7,17 +7,17 @@ The Intel I219LM is not supported. Since no additional PCI network interface exi
 adapter needs to be used. In this project the StarTech USB31000S was chosen. It is based on the AX88179 chipset.
 VMware engineer William Lam created unoffical drivers which support this chipset. Someone using an Realtek chipset adapter can use the driver created by Jose Gomes. The downloads can be found below.
 
-Downloads:
-ESXi6.X ax88179 driver --> https://s3.amazonaws.com/virtuallyghetto-download/vghetto-ax88179-esxi65-bundle.zip
-ESXi6.X realtek driver --> https://www.devtty.uk/homelab/USB-Ethernet-driver-for-ESXi-6.5/
-ESXi6.7 Offline-Bundle --> https://my.vmware.com/web/vmware/details?downloadGroup=ESXI670&productId=742&rPId=24636 //requires account and license
+Downloads: \
+ESXi6.X ax88179 driver --> https://s3.amazonaws.com/virtuallyghetto-download/vghetto-ax88179-esxi65-bundle.zip \
+ESXi6.X realtek driver --> https://www.devtty.uk/homelab/USB-Ethernet-driver-for-ESXi-6.5 \
+ESXi6.7 Offline-Bundle --> https://my.vmware.com/web/vmware/details?downloadGroup=ESXI670&productId=742&rPId=24636 \
 
 ## BIOS settings of the HP Elitedesk 800 G4:
 
 Starting to install ESXi via USB or CD in UEFI mode will eventually result in the installation getting stuck stating the following:
 
-"Shutting down firmware services
-Relocating modules and starting up the kernel…"
+*Shutting down firmware services
+Relocating modules and starting up the kernel…*
 
 So far I have not found a way getting the UEFI install to finish so I switched to legacy.
 For unknown reasons the USB stick was not listed in the legacy bootable devices. Therefore the customized ESXi image was burned on a DVD which was read with a USB/CD directly detected. This might be fixed otherwise.
@@ -25,17 +25,16 @@ For unknown reasons the USB stick was not listed in the legacy bootable devices.
 ### Summary of BIOS changes:
 
 * Advanced
-** test
---> System Options
-		 --> uncheck "Configure Storage Controller for Intel Optane"
-		 --> uncheck "Configure Storage Controller for RAID"
-		 --> enable VTx
-	 --> Secure Boot Configuration
-		 --> Configure Legacy Support and Secure Boot "Legacy Support Enable and Secure Boot Disable" 
-	 --> Boot Options
-		 --> uncheck Fast Boot
-		 --> check Legacy Boot Order and make sure the USB/Optical drive is first in order
-		 --> uncheck UEFI Boot Order
+  * System Options
+    * uncheck "Configure Storage Controller for Intel Optane"
+    * uncheck "Configure Storage Controller for RAID"
+    * enable VTx
+  * Secure Boot Configuration
+    * Configure Legacy Support and Secure Boot "Legacy Support Enable and Secure Boot Disable" 
+  * Boot Options
+    * uncheck Fast Boot
+    * check Legacy Boot Order and make sure the USB/Optical drive is first in order
+    * uncheck UEFI Boot Order
 
 ## Creating the custom ISO
 The next step was to create a custom installation bundle, including the AX88179 driver, as well as the PCI.e harddrive driver.
@@ -54,14 +53,14 @@ It uses the ESXi6.7 Offline-Bundle instead of the ESXi6.7 standard ISO. This was
 trial on vmware.com which needs to be revised if its going to be used in production.
 
 This script is to be used in the VMware PowerCLI (commands should be removed before execution)
-#Script
+```
 Add-EsxSoftwareDepot .\update-from-esxi6.7-6.7_update01.zip   //Offline bundle
 Add-EsxSoftwareDepot .\vghetto-ax88179-esxi65-bundle.zip      //Custom esxi6.5 (6.7 compatible) ax88179 driver
 New-EsxImageProfile -CloneProfile "ESXi-6.7.0-20181001001s-standard" -name "ESXi-6.7-ax88179" -Vendor "virten.net" -AcceptanceLevel "CommunitySupported"
 Remove-EsxSoftwarePackage -ImageProfile "ESXi-6.7-ax88179" -SoftwarePackage "vmkusb"  //Remove the vmkusb
 Add-EsxSoftwarePackage -ImageProfile "ESXi-6.7-ax88179" -SoftwarePackage "vghetto-ax88179-esxi65" //Add the driver
 Export-ESXImageProfile -NoSignatureCheck -ImageProfile "ESXi-6.7-ax88179" -ExportToISO -filepath ESXi-6.7-ax88179.iso //Export image profile to an ISO file
-#/Script
+```
 
 Then burn the ISO on a CD/DVD.
 When booting the ISO the ESXi installer should not prompt "No network adapter..." anymore.
